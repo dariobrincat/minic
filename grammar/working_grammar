@@ -1,0 +1,88 @@
+program ::= extern_list decl_list 
+         | decl_list
+extern_list ::= extern extern_list_p
+extern_list_p ::= extern extern_list_p
+               | epsilon
+extern ::= "extern" type_spec IDENT "(" params ")" ";"
+decl_list ::= decl decl_list_p
+decl_list_p ::= decl decl_list_p
+             | epsilon
+decl ::= var_decl 
+      |  fun_decl
+var_decl ::= var_type IDENT ";" 
+type_spec ::= "void"
+           |  var_type           
+var_type  ::= "int" |  "float" |  "bool"
+fun_decl ::= type_spec IDENT "(" params ")" block
+params ::= param_list  
+        |  "void" | epsilon
+param_list ::= param param_list_p
+param_list_p ::= "," param param_list_p
+              | epsilon
+param ::= var_type IDENT
+block ::= "{" local_decls stmt_list "}" | "{" stmt_list "} | "{" local_decls "}" | "{" "}"
+local_decls ::= local_decl local_decls_p
+local_decls_p ::= local_decl local_decls_p
+               | epsilon
+local_decl ::= var_type IDENT ";"
+stmt_list ::= stmt stmt_list_p
+stmt_list_p ::= stmt stmt_list_p
+             | epsilon
+stmt ::= expr_stmt 
+      |  block 
+      |  if_stmt 
+      |  while_stmt 
+      |  return_stmt
+expr_stmt ::= expr ";" 
+           |  ";"
+while_stmt ::= "while" "(" expr ")" stmt 
+if_stmt ::= "if" "(" expr ")" block else_stmt
+else_stmt  ::= "else" block
+            |  epsilon
+return_stmt ::= "return" ";" 
+             |  "return" expr ";"   
+
+# operators in order of increasing precedence      
+expr ::= IDENT "=" expr
+      | rval
+rval ::= leveltwo rval_p
+rval_p ::= "||" leveltwo rval_p
+        | epsilon
+leveltwo ::= levelthree leveltwo_p
+leveltwo_p ::= rval_p "&&" levelthree leveltwo_p
+            | epsilon
+levelthree ::= levelfour levelthree_p
+levelthree_p ::= leveltwo_p rval_p levelthree_p_factor
+              | epsilon
+levelthree_p_factor ::= "==" levelfour levelthree_p 
+                     | "!=" levelfour levelthree_p
+levelfour ::= levelfive levelfour_p
+levelfour_p ::= levelthree_p leveltwo_p rval_p levelfour_p_factor
+             | epsilon
+levelfour_p_factor ::= "<=" levelfive levelfour_p
+                    | "<" levelfive levelfour_p
+                    | ">=" levelfive levelfour_p
+                    | ">" levelfive levelfour_p
+levelfive ::= levelsix levelfive_p
+levelfive_p ::= levelfour_p levelthree_p leveltwo_p rval_p levelfive_p_factor
+             | epsilon
+levelfive_p_factor ::= "+" levelsix levelfive_p
+                    | "-" levelsix levelfive_p
+levelsix ::= levelseven levelsix_p
+levelsix_p ::= levelfive_p levelfour_p levelthree_p leveltwo_p rval_p levelsix_p_factor
+            | epsilon
+levelsix_p_factor ::= "*" levelseven levelsix_p
+                   | "/" levelseven levelsix_p
+                   | "%" levelseven levelsix_p
+levelseven ::= "-" nonoprval 
+            | "!" nonoprval
+            | nonoprval
+nonoprval ::= "(" expr ")"
+      | IDENT | IDENT "(" args ")" 
+      | INT_LIT | FLOAT_LIT | BOOL_LIT
+
+args ::= arg_list 
+      |  epsilon
+arg_list ::= expr arg_list_p  
+arg_list_p ::= "," expr arg_list_p
+            | epsilon        
